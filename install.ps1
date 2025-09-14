@@ -1,20 +1,34 @@
 # ===============================
-# Developer Environment Setup (Questionnaire Style)
+# Developer Environment Setup (Questionnaire + Failure Handling)
 # ===============================
 
+$failedInstalls = @() # track failed apps
+
 function Install-App {
-    param([string]$id)
-    if (-not (winget list --id $id | Out-String -ErrorAction SilentlyContinue | Select-String $id)) {
-        Write-Output "Installing $id..."
-        winget install --id $id -e --silent
-    } else {
-        Write-Output "$id already installed."
+    param([string]$id, [string]$name)
+
+    try {
+        if (-not (winget list --id $id | Out-String -ErrorAction SilentlyContinue | Select-String $id)) {
+            Write-Host "Installing $name..." -ForegroundColor Cyan
+            winget install --id $id -e --silent --accept-package-agreements --accept-source-agreements
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "$name installed successfully." -ForegroundColor Green
+            } else {
+                throw "Installation returned error code $LASTEXITCODE"
+            }
+        } else {
+            Write-Host "$name already installed." -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "❌ Failed to install $name ($_)" -ForegroundColor Red
+        $global:failedInstalls += $name
     }
 }
 
-Write-Output "==============================="
-Write-Output " Developer Setup Questionnaire"
-Write-Output "==============================="
+Write-Host "===============================" -ForegroundColor Magenta
+Write-Host " Developer Setup Questionnaire" -ForegroundColor Magenta
+Write-Host "===============================" -ForegroundColor Magenta
 
 # --- Ask Questions ---
 $installEssentials    = Read-Host "Install Essentials (VS Code, Git, Terminal, PowerToys, Chrome, etc.)? (y/n)"
@@ -25,66 +39,72 @@ $installCollab        = Read-Host "Install Collaboration Tools (Slack, Zoom, Not
 $installWSL           = Read-Host "Enable WSL2 with Ubuntu? (y/n)"
 $installVSCodeExt     = Read-Host "Install Recommended VS Code Extensions? (y/n)"
 
-Write-Output "`n================================"
-Write-Output " Installing selected components..."
-Write-Output "================================`n"
+Write-Host "`n================================" -ForegroundColor Cyan
+Write-Host " Installing selected components..." -ForegroundColor Cyan
+Write-Host "================================`n" -ForegroundColor Cyan
 
 # --- Essentials ---
 if ($installEssentials -eq "y") {
-    Install-App Microsoft.VisualStudioCode
-    Install-App Git.Git
-    Install-App Microsoft.PowerToys
-    Install-App Microsoft.WindowsTerminal
-    Install-App Google.Chrome
-    Install-App 7zip.7zip
-    Install-App GnuWin32.Wget
-    Install-App curl
-    Install-App stedolan.jq
-    Install-App JanDeDobbeleer.OhMyPosh
+    Install-App Microsoft.VisualStudioCode "Visual Studio Code"
+    Install-App Git.Git "Git"
+    Install-App Microsoft.PowerToys "PowerToys"
+    Install-App Microsoft.WindowsTerminal "Windows Terminal"
+    Install-App Google.Chrome "Google Chrome"
+    Install-App 7zip.7zip "7-Zip"
+    Install-App GnuWin32.Wget "wget"
+    Install-App curl "curl"
+    Install-App stedolan.jq "jq"
+    Install-App JanDeDobbeleer.OhMyPosh "Oh My Posh"
 }
 
 # --- Languages & Runtimes ---
 if ($installRuntimes -eq "y") {
-    Install-App Nodejs.Nodejs
-    Install-App RavenPowers.NodeVersionManager
-    Install-App Python.Python.3.12
-    Install-App OpenJDK.Temurin.17.JDK
-    Install-App Microsoft.DotNet.SDK.8
+    Install-App Nodejs.Nodejs "Node.js"
+    Install-App RavenPowers.NodeVersionManager "NVM for Windows"
+    Install-App Python.Python.3.12 "Python 3.12"
+    Install-App OpenJDK.Temurin.17.JDK "Java 17 (Temurin)"
+    Install-App Microsoft.DotNet.SDK.8 ".NET SDK 8"
 }
 
 # --- Package Managers ---
 if ($installPkgManagers -eq "y") {
-    Install-App Yarn.Yarn
-    Install-App pnpm.pnpm
+    Install-App Yarn.Yarn "Yarn"
+    Install-App pnpm.pnpm "pnpm"
 }
 
 # --- Databases & Tools ---
 if ($installDatabases -eq "y") {
-    Install-App Docker.DockerDesktop
-    Install-App Postman.Postman
-    Install-App NoSQLBooster.NoSQLBooster
-    Install-App Oracle.MySQL.Workbench
-    Install-App MongoDB.Compass.Full
-    Install-App PostgreSQL.pgAdmin
-    Install-App dbeaver.dbeaver
+    Install-App Docker.DockerDesktop "Docker Desktop"
+    Install-App Postman.Postman "Postman"
+    Install-App NoSQLBooster.NoSQLBooster "NoSQLBooster"
+    Install-App Oracle.MySQL.Workbench "MySQL Workbench"
+    Install-App MongoDB.Compass.Full "MongoDB Compass"
+    Install-App PostgreSQL.pgAdmin "pgAdmin"
+    Install-App dbeaver.dbeaver "DBeaver"
 }
 
 # --- Collaboration Tools ---
 if ($installCollab -eq "y") {
-    Install-App SlackTechnologies.Slack
-    Install-App Zoom.Zoom
-    Install-App Notion.Notion
-    Install-App GitHub.GitHubDesktop
+    Install-App SlackTechnologies.Slack "Slack"
+    Install-App Zoom.Zoom "Zoom"
+    Install-App Notion.Notion "Notion"
+    Install-App GitHub.GitHubDesktop "GitHub Desktop"
 }
 
 # --- WSL2 & Linux ---
 if ($installWSL -eq "y") {
-    Write-Output "Enabling WSL and Virtual Machine Platform..."
-    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-    wsl --set-default-version 2
-    Install-App Canonical.Ubuntu
-    Write-Output "Ubuntu installed. Launch it once from Start Menu to complete setup."
+    try {
+        Write-Host "Enabling WSL and Virtual Machine Platform..." -ForegroundColor Cyan
+        dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+        dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+        wsl --set-default-version 2
+        Install-App Canonical.Ubuntu "Ubuntu (WSL2)"
+        Write-Host "Ubuntu installed. Launch it once from Start Menu to complete setup." -ForegroundColor Yellow
+    }
+    catch {
+        Write-Host "❌ Failed to setup WSL2 ($_)" -ForegroundColor Red
+        $global:failedInstalls += "WSL2/Ubuntu"
+    }
 }
 
 # --- VS Code Extensions ---
@@ -108,7 +128,18 @@ if ($installVSCodeExt -eq "y") {
         "ms-vscode-remote.remote-wsl"
     )
     foreach ($ext in $extensions) {
-        code --install-extension $ext
+        try {
+            code --install-extension $ext
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "VS Code extension $ext installed." -ForegroundColor Green
+            } else {
+                throw "Error code $LASTEXITCODE"
+            }
+        }
+        catch {
+            Write-Host "❌ Failed to install VS Code extension $ext ($_)" -ForegroundColor Red
+            $global:failedInstalls += "VS Code Extension: $ext"
+        }
     }
 }
 
@@ -152,7 +183,16 @@ function wsl-update {
 }
 "@ | Out-File -FilePath $profilePath -Encoding utf8 -Append
 
-Write-Output "`n==============================="
-Write-Output " Setup complete."
-Write-Output " Restart your computer to finish setup."
-Write-Output "==============================="
+# ===============================
+# Final Report
+# ===============================
+Write-Host "`n===============================" -ForegroundColor Magenta
+Write-Host " Setup complete." -ForegroundColor Green
+if ($failedInstalls.Count -gt 0) {
+    Write-Host "The following installs failed:" -ForegroundColor Red
+    $failedInstalls | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
+} else {
+    Write-Host "All installs succeeded 🎉" -ForegroundColor Green
+}
+Write-Host " Restart your computer to finish setup." -ForegroundColor Yellow
+Write-Host "===============================" -ForegroundColor Magenta
