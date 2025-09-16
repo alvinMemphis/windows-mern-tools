@@ -1,6 +1,3 @@
-Got it 💯 — here’s the **entire cleaned-up README** as plain text (no extra duplication, ready to copy into your `README.md`):
-
----
 
 # 🖥 Windows MERN Tools
 
