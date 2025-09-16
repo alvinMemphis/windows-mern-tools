@@ -32,6 +32,7 @@ This script simplifies the setup process by asking you a few **interactive quest
 ## 📋 Tools Installed
 
 The script installs (depending on your selections):
+The script installs (depending on your selections):
 
 * **Visual Studio Code** (with extensions)
 * **Git**
