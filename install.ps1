@@ -1,5 +1,5 @@
 # ===============================
-# Developer Environment Setup (Questionnaire + Failure Handling)
+# Developer Environment Setup (Questionnaire + Failure Handling + Full-Stack Stack Choice)
 # ===============================
 
 $failedInstalls = @() # track failed apps
@@ -38,10 +38,7 @@ $installDatabases     = Read-Host "Install Database Tools (Docker, Postman, MySQ
 $installCollab        = Read-Host "Install Collaboration Tools (Slack, Zoom, Notion, GitHub Desktop)? (y/n)"
 $installWSL           = Read-Host "Enable WSL2 with Ubuntu? (y/n)"
 $installVSCodeExt     = Read-Host "Install Recommended VS Code Extensions? (y/n)"
-
-Write-Host "`n================================" -ForegroundColor Cyan
-Write-Host " Installing selected components..." -ForegroundColor Cyan
-Write-Host "================================`n" -ForegroundColor Cyan
+$installFullStack     = Read-Host "Install Full-Stack developer stack? (y/n)"
 
 # --- Essentials ---
 if ($installEssentials -eq "y") {
@@ -104,6 +101,85 @@ if ($installWSL -eq "y") {
     catch {
         Write-Host "❌ Failed to setup WSL2 ($_)" -ForegroundColor Red
         $global:failedInstalls += "WSL2/Ubuntu"
+    }
+}
+
+# --- Full-Stack Stack Selection ---
+if ($installFullStack -eq "y") {
+    Write-Host "`nSelect your Full-Stack stack(s):"
+    Write-Host "1. React Frontend"
+    Write-Host "2. Node.js Backend"
+    Write-Host "3. Golang Backend"
+    Write-Host "4. Java / Spring Boot"
+    Write-Host "5. PHP / Laravel"
+    Write-Host "6. Data Science / ML"
+    Write-Host "7. Mobile (React Native / Android)"
+    $stackSelection = Read-Host "Enter numbers separated by commas (e.g., 1,2)"
+    $selectedStacks = $stackSelection.Split(",") | ForEach-Object { $_.Trim() }
+
+    foreach ($stack in $selectedStacks) {
+        switch ($stack) {
+            "1" {
+                if ((Read-Host "Install React Frontend tools? (y/n)") -eq "y") {
+                    Install-App Nodejs.Nodejs "Node.js"
+                    Install-App RavenPowers.NodeVersionManager "NVM"
+                    Install-App Yarn.Yarn "Yarn"
+                    Install-App pnpm.pnpm "pnpm"
+                    Install-App Microsoft.VisualStudioCode "Visual Studio Code"
+                    Install-App Google.Chrome "Google Chrome"
+                    Install-App Postman.Postman "Postman"
+                }
+            }
+            "2" {
+                if ((Read-Host "Install Node.js Backend tools? (y/n)") -eq "y") {
+                    Install-App Nodejs.Nodejs "Node.js"
+                    Install-App RavenPowers.NodeVersionManager "NVM"
+                    Install-App Microsoft.VisualStudioCode "Visual Studio Code"
+                    Install-App Docker.DockerDesktop "Docker Desktop"
+                    Install-App DBeaver.DBeaver "DBeaver"
+                }
+            }
+            "3" {
+                if ((Read-Host "Install Golang Backend tools? (y/n)") -eq "y") {
+                    Install-App GoLang.Go "Golang"
+                    Install-App Microsoft.VisualStudioCode "Visual Studio Code"
+                    Install-App Docker.DockerDesktop "Docker Desktop"
+                    Install-App DBeaver.DBeaver "DBeaver"
+                }
+            }
+            "4" {
+                if ((Read-Host "Install Java / Spring Boot tools? (y/n)") -eq "y") {
+                    Install-App OpenJDK.Temurin.17.JDK "Java 17 (Temurin)"
+                    Install-App Maven.Maven "Maven"
+                    Install-App Gradle.Gradle "Gradle"
+                    Install-App JetBrains.IntelliJIDEACommunity "IntelliJ IDEA"
+                }
+            }
+            "5" {
+                if ((Read-Host "Install PHP / Laravel tools? (y/n)") -eq "y") {
+                    Install-App PHP.PHP "PHP"
+                    Install-App Composer.Composer "Composer"
+                    Install-App Oracle.MySQL.Workbench "MySQL Workbench"
+                }
+            }
+            "6" {
+                if ((Read-Host "Install Data Science / ML tools? (y/n)") -eq "y") {
+                    Install-App Python.Python.3.12 "Python 3.12"
+                    Install-App Anaconda.Anaconda3 "Anaconda"
+                    Install-App Postman.Postman "Postman"
+                    Install-App DBeaver.DBeaver "DBeaver"
+                }
+            }
+            "7" {
+                if ((Read-Host "Install Mobile (React Native / Android) tools? (y/n)") -eq "y") {
+                    Install-App Nodejs.Nodejs "Node.js"
+                    Install-App RavenPowers.NodeVersionManager "NVM"
+                    Install-App OpenJDK.Temurin.17.JDK "Java JDK"
+                    Install-App AndroidStudio.AndroidStudio "Android Studio"
+                    Install-App Microsoft.VisualStudioCode "Visual Studio Code"
+                }
+            }
+        }
     }
 }
 
